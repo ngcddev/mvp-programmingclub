@@ -5,10 +5,9 @@ import { medicamentosFallback } from './data';
 const TIMEOUT_MS = 8000;
 const MAX_ROWS = 1000;
 
-// En producción NO se muestran datos de ejemplo salvo que se habilite explícitamente:
-// mostrar existencias falsas como si fueran reales es peor que mostrar un error.
-const permitirFallback =
-  process.env.NODE_ENV !== 'production' || process.env.PERMITIR_DATOS_EJEMPLO === 'true';
+// Demo de hackathon: si Supabase falla se muestran datos de ejemplo también en producción
+// (la UI y la API los señalan con source: 'fallback'). Para un despliegue real: PERMITIR_DATOS_EJEMPLO=false.
+const permitirFallback = process.env.PERMITIR_DATOS_EJEMPLO !== 'false';
 
 export type ResultadoMedicamentos = {
   data: unknown[]; // se valida en clasificarMedicamentos()
