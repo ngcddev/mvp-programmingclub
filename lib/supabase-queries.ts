@@ -3,6 +3,7 @@ import { supabase } from './supabaseClient';
 import { medicamentosFallback } from './data';
 
 const TIMEOUT_MS = 8000;
+const MAX_ROWS = 1000;
 
 // En producción NO se muestran datos de ejemplo salvo que se habilite explícitamente:
 // mostrar existencias falsas como si fueran reales es peor que mostrar un error.
@@ -27,6 +28,7 @@ async function consultarSupabase(cliente: SupabaseClient): Promise<{ data: unkno
       .from('medicamentos')
       .select('*')
       .order('id')
+      .limit(MAX_ROWS)
       .abortSignal(AbortSignal.timeout(TIMEOUT_MS));
     return { data, error: error?.message ?? null };
   } catch (err) {
