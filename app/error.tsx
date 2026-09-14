@@ -8,8 +8,7 @@ export default function ErrorPriorizacion({ reset }: { reset: () => void }) {
           ▲ No se pudieron calcular las prioridades
         </div>
         <p className="mt-4 text-[13px] leading-relaxed text-gris">
-          No fue posible leer el inventario. Los datos de ejemplo no se muestran en producción para no confundirlos
-          con existencias reales.
+          No fue posible leer el inventario. Intenta de nuevo en unos segundos.
         </p>
         <button
           type="button"

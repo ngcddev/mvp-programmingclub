@@ -34,7 +34,7 @@ No hay actores con capacidad de escritura todavía: la carga/actualización de d
 | RF4 | El sistema debe ordenar los medicamentos de mayor a menor urgencia. |
 | RF5 | El sistema debe detectar y excluir registros con datos inválidos (negativos, vacíos, importancia desconocida, consumo diario en 0), informando el motivo de exclusión sin interrumpir el cálculo del resto. |
 | RF6 | El sistema debe indicar si los datos mostrados provienen de Supabase o de un dataset de respaldo (`fallback`). |
-| RF7 | En ambiente de producción, el sistema no debe mostrar datos de ejemplo como si fueran reales, salvo que se habilite explícitamente por configuración. |
+| RF7 | Si Supabase no está disponible, el sistema muestra datos de ejemplo (también en producción, para la demo de la hackathon), siempre señalados como tales en la interfaz y en la API. Se deshabilita con `PERMITIR_DATOS_EJEMPLO=false`. |
 
 ## Requerimientos no funcionales
 
@@ -42,7 +42,7 @@ No hay actores con capacidad de escritura todavía: la carga/actualización de d
 |---|---|
 | RNF1 | Las consultas a Supabase deben tener un timeout máximo (actualmente 8s) para no dejar la petición colgada. |
 | RNF2 | Las respuestas del endpoint no deben cachearse: el inventario cambia con frecuencia y siempre debe reflejar el estado más reciente. |
-| RNF3 | El sistema debe seguir respondiendo de forma controlada ante caídas o mala configuración de Supabase (fallback en desarrollo, error explícito en producción). |
+| RNF3 | El sistema debe seguir respondiendo de forma controlada ante caídas o mala configuración de Supabase (fallback con datos de ejemplo; error explícito solo si se deshabilita con `PERMITIR_DATOS_EJEMPLO=false`). |
 | RNF4 | El acceso a Supabase debe hacerse con la anon key protegida por Row Level Security; cualquier operación futura de escritura debe evaluarse con permisos server-side, no con la anon key pública. |
 
 ## Reglas de negocio
