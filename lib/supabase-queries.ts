@@ -1,19 +1,45 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { supabase } from './supabaseClient';
 import { medicamentosFallback } from './data';
-import type { Medicamento } from './priorizacion';
 
-export async function getMedicamentos(): Promise<{ data: Medicamento[]; source: 'supabase' | 'fallback' }> {
-  if (!supabase) {
-    console.warn('[getMedicamentos] Supabase no configurado, usando fallback');
-    return { data: medicamentosFallback, source: 'fallback' };
+const TIMEOUT_MS = 8000;
+
+// En producción NO se muestran datos de ejemplo salvo que se habilite explícitamente:
+// mostrar existencias falsas como si fueran reales es peor que mostrar un error.
+const permitirFallback =
+  process.env.NODE_ENV !== 'production' || process.env.PERMITIR_DATOS_EJEMPLO === 'true';
+
+export type ResultadoMedicamentos = {
+  data: unknown[]; // se valida en clasificarMedicamentos()
+  source: 'supabase' | 'fallback';
+  error?: string;
+};
+
+function usarFallback(error: string): ResultadoMedicamentos {
+  if (!permitirFallback) throw new Error(`No se pudieron obtener los medicamentos: ${error}`);
+  console.warn('[getMedicamentos] Usando datos de ejemplo:', error);
+  return { data: medicamentosFallback, source: 'fallback', error };
+}
+
+async function consultarSupabase(cliente: SupabaseClient): Promise<{ data: unknown[] | null; error: string | null }> {
+  try {
+    const { data, error } = await cliente
+      .from('medicamentos')
+      .select('*')
+      .order('id')
+      .abortSignal(AbortSignal.timeout(TIMEOUT_MS));
+    return { data, error: error?.message ?? null };
+  } catch (err) {
+    return { data: null, error: err instanceof Error ? err.message : String(err) };
   }
+}
 
-  const { data, error } = await supabase.from('medicamentos').select('*').order('id');
+export async function getMedicamentos(): Promise<ResultadoMedicamentos> {
+  if (!supabase) return usarFallback('Faltan NEXT_PUBLIC_SUPABASE_URL o NEXT_PUBLIC_SUPABASE_ANON_KEY');
 
-  if (error || !data || data.length === 0) {
-    console.warn('[getMedicamentos] Error o tabla vacía, usando fallback:', error?.message);
-    return { data: medicamentosFallback, source: 'fallback' };
-  }
+  const { data, error } = await consultarSupabase(supabase);
+  if (error) return usarFallback(error);
 
-  return { data: data as Medicamento[], source: 'supabase' };
+  // Tabla vacía es un resultado real, no un error: no se reemplaza con datos de ejemplo
+  return { data: data ?? [], source: 'supabase' };
 }
